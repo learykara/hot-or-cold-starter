@@ -1,7 +1,10 @@
+var target, error, errorInit, direction, newGame;
+
 function newGame() {
 	// reset guessList and counter if not 0
 	$('#guessList').text('');
 	$('span').text(0);
+	newGame = true;
 
 	return target = generateNum();
 }
@@ -17,20 +20,20 @@ function feedback(guess, target) {
 	var feedback,
 	    adiff = Math.abs(guess - target),
 	    diff = guess - target;
-	if (diff === 0) {
+	if (adiff === 0) {
 		feedback = 'nailed it!';
-	} else if (diff <= 10) {
+	} else if (adiff <= 10) {
 		feedback = 'very hot';
-	} else if (diff <= 20) {
+	} else if (adiff <= 20) {
 		feedback = 'hot';
-	} else if (diff <= 30) {
+	} else if (adiff <= 30) {
 		feedback = 'warm';
-	} else if (diff <= 50) {
+	} else if (adiff <= 50) {
 		feedback = 'cold';
 	} else {
 		feedback = 'ice cold';
 	}
-	return feedback;
+	return [feedback, adiff];
 }
 
 function isValid(guess) {
@@ -48,7 +51,6 @@ $(document).ready(function(){
 	/*--- Display information modal box ---*/
   	$(".what").click(function(){
     	$(".overlay").fadeIn(1000);
-
   	});
 
   	/*--- Hide information modal box ---*/
@@ -58,7 +60,6 @@ $(document).ready(function(){
 
   	// start new game automatically on page load,
   	// and on user command
-  	var target;
   	target = newGame();
   	$('.new').on('click', function() {
   		target = newGame();
@@ -74,13 +75,34 @@ $(document).ready(function(){
   			alert('please guess a number between 1 and 100');
   		}
   		else {
-	  		$('#feedback').text(feedback(guess, target));
+  			console.log(guess, target, feedback(guess, target));
+  			errorInit = error;
+  			error = feedback(guess, target)[1];
+
+  			console.log(errorInit, error);
+  			if (newGame === true) {
+  				direction = '';
+  				newGame = false;
+  			} else if (errorInit < error) {
+  				direction = "& getting colder";
+  			} else {
+  				direction = "& getting warmer";
+  			}
+	  		$('#feedback').text(feedback(guess, target)[0] + "\n" + direction);
+	  		event.preventDefault();
+
+	  		// stop game if correct number is guessed
+	  		if (feedback(guess, target)[0] === 'nailed it!') {
+	  			alert('congratulations, you won the game!');
+	  			newGame();
+	  		}
 
 	  		// increment counter by one
 	  		var count = +$('#count').text();
 	  		count += 1;
 	  		$('#count').text(count);
 	  		$('#guessList').append('<li>' + guess + '</li>');
+	  		event.preventDefault();
   		}
   	})
 
